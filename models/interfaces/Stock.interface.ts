@@ -1,5 +1,5 @@
 export default interface Stock {
-  date: string;
-  price: number;
-  currency: string;
+  data: string;
+  cena: number;
+  waluta: string;
 }
