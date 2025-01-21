@@ -8,12 +8,3 @@ export async function openDb() {
     driver: sqlite3.Database,
   });
 }
-
-const createTableSQL = `
-  CREATE TABLE IF NOT EXISTS ceny_akcji (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    data TEXT NOT NULL,
-    cena REAL NOT NULL,
-    waluta TEXT NOT NULL
-  );
-`;
