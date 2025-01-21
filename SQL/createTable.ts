@@ -15,15 +15,15 @@ export async function createTable(db: any) {
   db.exec(deleteTableSQL);
   db.exec(createTableSQL);
   const data = await readCSV();
-  //   console.log(data);
-  data.forEach((row) => {
-    insertDataIntoDB(db, row);
-  });
+  console.log(data.length);
+  for (const row of data) {
+    await insertDataIntoDB(db, row);
+  }
 }
 
-const insertDataIntoDB = (db: any, row: Stock) => {
+const insertDataIntoDB = async (db: any, row: Stock) => {
   const insertSQL = `INSERT INTO ceny_akcji (data, cena, waluta) VALUES (?, ?, ?)`;
 
-  db.run(insertSQL, [row.date, row.price, row.currency]);
-  //   console.log(`Inserted: ${row.date}, ${row.price}, ${row.currency}`);
+  await db.run(insertSQL, [row.date, row.price, row.currency]);
+  console.log(`Inserted: ${row.date}, ${row.price}, ${row.currency}`);
 };
