@@ -1,81 +1,51 @@
 import { openDb } from "../SQL/openDB.js";
 import { createTable } from "../SQL/createTable.js";
+import { Database } from "sqlite";
+import { readCSV } from "../SQL/readCSV.js";
+import readline from "readline";
+import StockAnalysis from "../models/classes/StockAnalysis.class.js";
 
-const db = await openDb();
-await createTable(db);
-const result = await db.all(`SELECT * FROM ceny_akcji
-    ORDER BY data`);
-db.close();
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
-// to count periods of price drop, one period is when price starts dropping and ends when price starts rising
-let dropPeriodCount = 0;
-let isPriceDropPeriod = false;
-// to find biggest price drop
-let biggestDailyPriceDrop = 0;
-// to find biggest price drop period
-let biggestPriceDropPeriod = 0;
-let currentPriceDropPeriodStartPrice = 0;
-// to find longest period of constant price
-let longestConstantPricePeriod = 0;
-let previousPrice = 0;
-let currentConstantPricePeriod = 0;
+rl.question(
+  "If you want to calculate from DB enter 'DB' otherwise to calculate from CSV enter anything else: ",
+  async (answer) => {
+    if (answer.trim().toUpperCase() === "DB") {
+      (async () => {
+        console.log("Starting DB processing...");
+        const db: Database = await openDb();
+        try {
+          // Fetch all rows
+          await createTable(db);
+          const result = await fetchAllRows(db);
 
-function main() {
-  result.forEach((row, index) => {
-    let currentPrice = row.cena;
-
-    // first iteration
-    if (index === 0) {
-      // set longest constant price period to 1, because there is at least one day
-      longestConstantPricePeriod = 1;
-      currentConstantPricePeriod = 1;
-    }
-    // remaining iterations
-    else {
-      if (currentPrice < previousPrice) {
-        // set biggest price drop
-        biggestDailyPriceDrop = Math.max(
-          biggestDailyPriceDrop,
-          previousPrice - currentPrice
-        );
-        // reset current constant price period
-        currentConstantPricePeriod = 1;
-
-        // if it's the first day of price drop period then increment drop period count
-        if (!isPriceDropPeriod) {
-          isPriceDropPeriod = true;
-          currentPriceDropPeriodStartPrice = previousPrice;
-          dropPeriodCount++;
+          // Ensure all rows are fetched before processing
+          console.log("Starting main processing...");
+          //   await main(result);
+          new StockAnalysis(result).consoleSummary();
+        } catch (err) {
+          console.error("Error occurred:", err);
+        } finally {
+          await db.close();
         }
-        biggestPriceDropPeriod = Math.max(
-          biggestPriceDropPeriod,
-          currentPriceDropPeriodStartPrice - currentPrice
-        );
-      } else if (currentPrice === previousPrice) {
-        currentConstantPricePeriod++;
-        longestConstantPricePeriod = Math.max(
-          longestConstantPricePeriod,
-          currentConstantPricePeriod
-        );
-      } else if (currentPrice > previousPrice) {
-        if (longestConstantPricePeriod > 0) {
-          dropPeriodCount++;
-          longestConstantPricePeriod = 0;
-        }
-        isPriceDropPeriod = false;
-        // reset current constant price period
-        currentConstantPricePeriod = 1;
-      }
+      })();
+    } else {
+      (async () => {
+        console.log("Starting CSV processing...");
+
+        const result = await readCSV();
+        console.log("Starting main processing...");
+        new StockAnalysis(result).consoleSummary();
+      })();
     }
-    // set previous price for the next iteration
-    previousPrice = row.cena;
-  });
-  biggestDailyPriceDrop = +biggestDailyPriceDrop.toFixed(2);
-  biggestPriceDropPeriod = +biggestPriceDropPeriod.toFixed(2);
-  console.log(`biggestDailyPriceDrop: ${biggestDailyPriceDrop}`);
-  console.log(`biggestPriceDropPeriod: ${biggestPriceDropPeriod}`);
-  console.log(`longestConstantPricePeriod: ${longestConstantPricePeriod}`);
-  console.log(`dropPeriodCount: ${dropPeriodCount}`);
+    rl.close();
+  }
+);
+
+async function fetchAllRows(db: Database) {
+  const rows = await db.all(`SELECT * FROM ceny_akcji ORDER BY data`);
+  return rows;
 }
-
-main();
