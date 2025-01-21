@@ -2,18 +2,18 @@ import csv from "csv-parser";
 import fs from "fs";
 import Stock from "../models/interfaces/Stock.interface.js";
 
-const csvFilePath = "ceny_akcji.csv";
-
-export async function readCSV(): Promise<Stock[]> {
+export async function readCSV(
+  csvFilePath = "ceny_akcji.csv"
+): Promise<Stock[]> {
   return new Promise((resolve, reject) => {
     const results: Stock[] = [];
     fs.createReadStream(csvFilePath)
       .pipe(csv({ headers: false }))
       .on("data", (row) => {
         const stockData: Stock = {
-          date: row[1],
-          price: row[2],
-          currency: row[3],
+          data: row[1],
+          cena: row[2],
+          waluta: row[3],
         };
         results.push(stockData);
       })

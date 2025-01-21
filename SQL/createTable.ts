@@ -1,5 +1,6 @@
 import { readCSV } from "./readCSV.js";
 import Stock from "../models/interfaces/Stock.interface.js";
+import { Database } from "sqlite";
 
 const deleteTableSQL = `DROP TABLE IF EXISTS ceny_akcji;`;
 const createTableSQL = `
@@ -11,19 +12,17 @@ const createTableSQL = `
   );
 `;
 
-export async function createTable(db: any) {
-  db.exec(deleteTableSQL);
-  db.exec(createTableSQL);
+export async function createTable(db: Database) {
+  await db.exec(deleteTableSQL);
+  await db.exec(createTableSQL);
   const data = await readCSV();
-  console.log(data.length);
   for (const row of data) {
     await insertDataIntoDB(db, row);
   }
 }
 
-const insertDataIntoDB = async (db: any, row: Stock) => {
+const insertDataIntoDB = async (db: Database, row: Stock) => {
   const insertSQL = `INSERT INTO ceny_akcji (data, cena, waluta) VALUES (?, ?, ?)`;
 
-  await db.run(insertSQL, [row.date, row.price, row.currency]);
-  console.log(`Inserted: ${row.date}, ${row.price}, ${row.currency}`);
+  await db.run(insertSQL, [row.data, row.cena, row.waluta]);
 };
