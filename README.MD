@@ -17,7 +17,7 @@ This project is a TypeScript-based stock analysis program that reads stock price
 
    ```bash
    git clone https://github.com/AdamBayraktar/stock-analysis-toolkit
-   cd stock-analysis
+   cd stock-analysis-toolkit
    ```
 
 2. **Install Dependencies**:
