@@ -16,7 +16,10 @@ export default class StockAnalysis {
   private previousPrice = 0;
 
   constructor(private data: Stock[]) {
-    // Sort data by date before processing
+    if (!this.data || this.data.length === 0) {
+      throw new Error("Brak danych do analizy.");
+    }
+    // Sort by date before processing
     this.data.sort(
       (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
     );
